@@ -25,7 +25,7 @@ public class InboundClientHandler extends SimpleChannelInboundHandler<Object>
     public void channelRead0( ChannelHandlerContext ctx, Object msg ) throws Exception
     {
         // Print as received
-        System.out.println( "Client receive msg=" + msg );
+//        System.out.println( "Client receive msgSize=" + ((String) msg).getBytes().length );
     }
 
     @Override

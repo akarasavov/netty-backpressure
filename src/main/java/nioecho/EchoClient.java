@@ -19,6 +19,7 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -27,6 +28,7 @@ import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.util.AttributeKey;
 import localecho.InboundClientHandler;
 import localecho.OutboundClientHandler;
 
@@ -43,7 +45,12 @@ public final class EchoClient
     {
 
         // Configure the client.
+        int sendBuffer = 32;
+        int rcvBuffer = 32;
+        int lowWaterMark = 32;
+        int highWaterMark = 64;
         EventLoopGroup group = new NioEventLoopGroup();
+        final String data = DataGenerator.generateNBytes( Integer.MAX_VALUE - 10 );
         try
         {
             Bootstrap b = new Bootstrap();
@@ -61,9 +68,17 @@ public final class EchoClient
                              new InboundClientHandler(),
                              new OutboundClientHandler()
                      );
+
+                     System.out.println("senbuf:"+ ch.config().getSendBufferSize());
+                     System.out.println("waterhigh:"+ ch.config().getWriteBufferHighWaterMark());
+                     System.out.println("waterlow:"+ ch.config().getWriteBufferLowWaterMark());
+                     System.out.println("recbuf:"+ ch.config().getReceiveBufferSize());
                  }
              } );
-
+            b.option( ChannelOption.SO_SNDBUF, sendBuffer * 1024 );
+            b.option( ChannelOption.SO_RCVBUF, rcvBuffer * 1024 );
+            b.option( ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, lowWaterMark * 1024 );
+            b.option( ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, highWaterMark * 1024 );
             // Start the client.
             Channel ch = b.connect( HOST, PORT ).sync().channel();
 
@@ -86,7 +101,16 @@ public final class EchoClient
                 }
                 else
                 {
-                    lastWriteFuture = ch.writeAndFlush( line ).sync();
+                    if ( line.contains( "stop" ) )
+                    {
+                        lastWriteFuture = ch.writeAndFlush( line ).sync();
+                    }
+                    else
+                    {
+                        final Integer amount = Integer.valueOf( line );
+                        final String chunk = data.substring( 0, amount );
+                        ch.writeAndFlush( chunk );
+                    }
                 }
             }
 

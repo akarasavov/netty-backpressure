@@ -17,6 +17,7 @@ package localecho;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelOption;
 
 public class InboundServerHandler extends ChannelInboundHandlerAdapter
 {
@@ -25,10 +26,30 @@ public class InboundServerHandler extends ChannelInboundHandlerAdapter
     public void channelRead( ChannelHandlerContext ctx, Object msg )
     {
         // Write back as received
-        System.out.println( "Server receive msg=" + msg );
-        if ( msg.equals( "stop" ) )
+        System.out.println("inbound_sendBuf=" + ctx.channel().config().getOption( ChannelOption.SO_SNDBUF ));
+        System.out.println("inbound_rcvBuf=" + ctx.channel().config().getOption( ChannelOption.SO_RCVBUF ));
+        System.out.println("waterhigh:"+ ctx.channel().config().getOption( ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK ));
+        System.out.println("waterlow:"+ ctx.channel().config().getOption( ChannelOption.WRITE_BUFFER_LOW_WATER_MARK ));
+
+//        System.out.println( "Server receive msgSize" + ((String) msg).getBytes().length );
+        if ( ((String) msg).contains( "stop" ) )
         {
+            final Integer sleepTimeout = Integer.valueOf( ((String) msg).split( "#" )[1] );
+            System.out.println( "Turn off autoread for=" + sleepTimeout );
             ctx.channel().config().setAutoRead( false );
+            new Thread( () ->
+                        {
+                            try
+                            {
+                                Thread.sleep( sleepTimeout );
+                            }
+                            catch ( InterruptedException e )
+                            {
+                                e.printStackTrace();
+                            }
+                            System.out.println( "change the auto read" );
+                            ctx.channel().config().setAutoRead( true );
+                        } ).start();
         }
         else if ( msg.equals( "start" ) )
         {

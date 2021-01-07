@@ -18,6 +18,7 @@ package nioecho;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -38,6 +39,10 @@ public final class EchoServer
     {
 
         // Configure the server.
+        int sendBuffer = 32;
+        int rcvBuffer = 32;
+        int lowWaterMark = 32;
+        int highWaterMark = 64;
         EventLoopGroup bossGroup = new NioEventLoopGroup( 1 );
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try
@@ -59,8 +64,17 @@ public final class EchoServer
                              new OutboundServerHandler()
 
                      );
+
+                     System.out.println( "senbuf:" + ch.config().getSendBufferSize() );
+                     System.out.println( "waterhigh:" + ch.config().getWriteBufferHighWaterMark() );
+                     System.out.println( "waterlow:" + ch.config().getWriteBufferLowWaterMark() );
+                     System.out.println( "recbuf:" + ch.config().getReceiveBufferSize() );
                  }
              } );
+            b.childOption( ChannelOption.SO_SNDBUF, sendBuffer * 1024 );
+            b.childOption( ChannelOption.SO_RCVBUF, rcvBuffer * 1024 );
+            b.childOption( ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, lowWaterMark * 1024 );
+            b.childOption( ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, highWaterMark * 1024 );
 
             // Start the server.
             ChannelFuture f = b.bind( PORT ).sync();
