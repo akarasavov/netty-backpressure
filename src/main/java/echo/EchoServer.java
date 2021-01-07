@@ -30,9 +30,6 @@ import io.netty.handler.logging.LoggingHandler;
 import localecho.InboundServerHandler;
 import localecho.OutboundServerHandler;
 
-/**
- * Echoes back any received data from a client.
- */
 public final class EchoServer
 {
 

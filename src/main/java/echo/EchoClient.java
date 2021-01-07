@@ -34,10 +34,6 @@ import localecho.OutboundClientHandler;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
-/**
- * Sends one message when a connection is open and echoes back any received data to the server.  Simply put, the echo client initiates the ping-pong traffic
- * between the echo client and server by sending the first message to the server.
- */
 public final class EchoClient
 {
 
